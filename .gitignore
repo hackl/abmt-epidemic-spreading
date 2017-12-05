@@ -54,7 +54,5 @@ nb-configuration.xml
 release.properties
 pom.xml.releaseBackup
 pom.xml.tag
-/output/ITERS/it.0/0.legHistogram.txt
-/output/ITERS/it.0/0.tripdurations.txt
-/output/ITERS/it.1/1.legHistogram.txt
-/scenarios/SiouxFalls/config.xml
+output/
+scenarios/
