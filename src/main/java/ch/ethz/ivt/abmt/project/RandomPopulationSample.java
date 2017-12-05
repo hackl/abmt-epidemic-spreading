@@ -4,9 +4,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * This class selects randomly a sample of x persons out of the population.
@@ -25,7 +23,7 @@ public class RandomPopulationSample {
         this.population = population;
     }
 
-    public ArrayList<Id> randomPopulation() {
+    public Set<Id> randomPopulation() {
         // import random process
         Random random = new Random();
 
@@ -41,7 +39,8 @@ public class RandomPopulationSample {
             randomKeys.add(keys.get(random.nextInt(keys.size())));
         }
         // returns a list with random person ids
-        return (ArrayList<Id>) randomKeys;
+        Set<Id> randomPersonsIds = new HashSet<Id>(randomKeys);
+        return randomPersonsIds;
     }
 
 }

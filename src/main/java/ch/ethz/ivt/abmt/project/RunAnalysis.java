@@ -2,19 +2,27 @@ package ch.ethz.ivt.abmt.project;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
+import org.matsim.core.mobsim.qsim.pt.TransitVehicle;
 import org.matsim.core.network.io.NetworkReaderMatsimV2;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.FacilitiesReaderMatsimV1;
+import org.matsim.vehicles.Vehicle;
+import org.matsim.vehicles.VehicleReaderV1;
+import org.matsim.vehicles.Vehicles;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RunAnalysis {
     public static void main(String[] args){
@@ -27,6 +35,8 @@ public class RunAnalysis {
         String inputFacilitiesFile = "output/output_facilities.xml.gz";
         //Path to the population file
         String inputPopulationFile = "scenarios/SiouxFalls/population.xml.gz";
+        //Path to the transit vehicle file
+        String inputVehicleFile = "output/output_transitVehicles.xml.gz";
 
         /** Setup example and load objects**/
         // create a config file
@@ -37,6 +47,7 @@ public class RunAnalysis {
         //create a network object
         NetworkReaderMatsimV2 networkReader = new NetworkReaderMatsimV2(scenario.getNetwork());
         networkReader.readFile(inputNetworkFile);
+        Network network = scenario.getNetwork();
 
         // create a facility object
         FacilitiesReaderMatsimV1 facilitiesReader = new FacilitiesReaderMatsimV1(scenario);
@@ -48,38 +59,52 @@ public class RunAnalysis {
         populationReader.readFile(inputPopulationFile);
         Population population = scenario.getPopulation();
 
+        // create a vehicles object
+        VehicleReaderV1 vehicleReader = new VehicleReaderV1(scenario.getVehicles());
+        vehicleReader.readFile(inputVehicleFile);
+        Vehicles vehicles = scenario.getVehicles();
+
         // Generate a random sample of persons from the population
         RandomPopulationSample rps = new RandomPopulationSample(5,population);
-        List<Id> randomPersonsIds = rps.randomPopulation();
-        System.out.println(randomPersonsIds);
+//        Set<Id> randomPersonsIds = rps.randomPopulation();
+//        System.out.println(randomPersonsIds);
 
+        // Single person
+        Id<Person> myPersonId = Id.createPersonId("18869_2");
+        Set<Id> randomPersonsIds = new HashSet<Id>();
+        randomPersonsIds.add(myPersonId);
 
         //create an event object
         EventsManager events = EventsUtils.createEventsManager();
 
+//        //create the handler and add it
+//        MyFacilitiesEventHandler facEventHandler = new MyFacilitiesEventHandler(activityFacilities,randomPersonsIds);
+//        events.addHandler(facEventHandler);
+
+
         //create the handler and add it
-        MyFacilitiesEventHandler facEventHandler = new MyFacilitiesEventHandler(activityFacilities,randomPersonsIds);
+        MyXYFacilitiesEventHandler facEventHandler = new MyXYFacilitiesEventHandler(activityFacilities,randomPersonsIds,network);
         events.addHandler(facEventHandler);
 
-        //todo assign given Id
-        //Id<Person> myPersonId = (Id<Person>) population.getPersons().get("10614_2");
-        //Id<Person> myPersonId = population.getPersons().keySet().
-        //FollowSinglePersonEventHandler fspEventHandler = new FollowSinglePersonEventHandler(randomPersonsIds.get(0));
-        //events.addHandler(fspEventHandler);
+//        MyVehiclesEventHandler vecEventHandler = new MyVehiclesEventHandler(vehicles,randomPersonsIds);
+//        events.addHandler(vecEventHandler);
 
         //create the reader and read the file
         MatsimEventsReader eventReader = new MatsimEventsReader(events);
         eventReader.readFile(inputEventFile);
 
 
+//        vecEventHandler.printInfected();
+//        vecEventHandler.writeChart();
+//        vecEventHandler.closeFile();
 
-        //fspEventHandler.printPersonId();
-        facEventHandler.printInfected();
-
-
+//        //fspEventHandler.printPersonId();
+//        facEventHandler.printInfected();
+//
+//
         // todo find a better solution for this
         facEventHandler.closeFile();
-        facEventHandler.writeChart();
+//        facEventHandler.writeChart();
 
         System.out.println("Events file read!");
 

@@ -59,5 +59,15 @@ public class RunSimpleScripts {
         // System.out.println(population.getPersons().size());
 
         //population.getPersons().keySet()
+
+
+
+        //Vehicles vehicles = (Vehicles) scenario.getTransitVehicles().getVehicles();
+
+//        System.out.println(vehicles.getVehicles().size());
+//
+//        for (Vehicle vec: vehicles.getVehicles().values()){
+//            System.out.println(vec.getId());
+//        }
     }
 }

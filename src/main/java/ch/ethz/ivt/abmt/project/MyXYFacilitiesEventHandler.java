@@ -1,10 +1,13 @@
 package ch.ethz.ivt.abmt.project;
 
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.ActivityStartEvent;
 import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
 import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.utils.charts.XYLineChart;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
@@ -12,19 +15,21 @@ import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
 
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class MyFacilitiesEventHandler implements ActivityStartEventHandler,ActivityEndEventHandler{
+public class MyXYFacilitiesEventHandler implements ActivityStartEventHandler,ActivityEndEventHandler{
     private ActivityFacilities activityFacilities;
     private Set<Id> infectedPersonsIds;
+    private Network network;
     // create an empty map with facilities ids as keys and empty lists as values
     public Map<Id,Set<Id>> facilitesVisitors = new HashMap();
 
     // initialize output file
     private BufferedWriter writer = null;
-    private final String filePath = "facilities.csv";
+    private final String filePath = "xyfacilities.csv";
 
     // initialize XY plot
     private List<Integer> infected = new ArrayList<Integer>();
@@ -33,9 +38,10 @@ public class MyFacilitiesEventHandler implements ActivityStartEventHandler,Activ
 
 
 
-    public MyFacilitiesEventHandler(ActivityFacilities activityFacilities,Set<Id> infectedPersonsIds){
+    public MyXYFacilitiesEventHandler(ActivityFacilities activityFacilities, Set<Id> infectedPersonsIds, Network network){
         this.activityFacilities = activityFacilities;
         this.infectedPersonsIds = infectedPersonsIds;
+        this.network = network;
 
 
         // go through all facilities and append Id to map
@@ -61,14 +67,19 @@ public class MyFacilitiesEventHandler implements ActivityStartEventHandler,Activ
             if (!Collections.disjoint(facilitesVisitors.get(event.getFacilityId()),infectedPersonsIds)){
                 infectedPersonsIds.add(event.getPersonId());
 
+                Id<Link> linkId = event.getLinkId();
+                Link link = network.getLinks().get(linkId);
+                Coord coord = link.getCoord();
+
                 // write output to file
                 try{
                     writer.newLine();
-                    writer.write(event.getTime()+"\t"+
-                                    event.getPersonId()+"\t"+
-                                    infectedPersonsIds.size()+"\t"+
-                                    Time.writeTime(event.getTime())+"\t"+
-                                    event.getActType());
+//                    writer.write(event.getTime()+"\t"+
+//                            event.getPersonId()+"\t"+
+//                            infectedPersonsIds.size()+"\t"+
+//                            Time.writeTime(event.getTime())+"\t"+
+//                            event.getActType());
+                    writer.write(event.getPersonId()+"\t"+event.getActType()+"\tstart\t"+coord.getX()+"\t"+coord.getY()+"\t"+event.getTime());
                 }catch (IOException e){
                     throw new UncheckedIOException(e);
                 }
@@ -87,6 +98,25 @@ public class MyFacilitiesEventHandler implements ActivityStartEventHandler,Activ
     public void handleEvent(ActivityEndEvent event) {
         // todo find a way to account for pt interactions
         if (!"pt interaction".equals(event.getActType())) {
+
+            // check if infected person is in the facility
+            // todo code is very slow, probably there is a better solution
+            if (!Collections.disjoint(facilitesVisitors.get(event.getFacilityId()),infectedPersonsIds)) {
+                infectedPersonsIds.add(event.getPersonId());
+
+                Id<Link> linkId = event.getLinkId();
+                Link link = network.getLinks().get(linkId);
+                Coord coord = link.getCoord();
+
+                // write output to file
+                try {
+                    writer.newLine();
+                    writer.write(event.getPersonId() + "\t" + event.getActType() + "\tend\t" + coord.getX() + "\t" + coord.getY() + "\t" + event.getTime());
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
             // remove person from the facility
             facilitesVisitors.get(event.getFacilityId()).remove(event.getPersonId());
         }
@@ -128,7 +158,8 @@ public class MyFacilitiesEventHandler implements ActivityStartEventHandler,Activ
     public void openFile(){
         this.writer = IOUtils.getBufferedWriter(filePath);
         try{
-            writer.write("time\tpersonId\tsumInfected\tsTime\tactType");
+//            writer.write("time\tpersonId\tsumInfected\tsTime\tactType");
+            writer.write("personId\tactType\tevent\tx\ty\ttime");
         } catch (IOException e){
             throw new UncheckedIOException(e);
         }
