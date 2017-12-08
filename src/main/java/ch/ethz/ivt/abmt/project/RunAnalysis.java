@@ -4,6 +4,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
@@ -22,6 +23,7 @@ import org.matsim.vehicles.Vehicles;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class RunAnalysis {
@@ -65,14 +67,16 @@ public class RunAnalysis {
         Vehicles vehicles = scenario.getVehicles();
 
         // Generate a random sample of persons from the population
-        RandomPopulationSample rps = new RandomPopulationSample(5,population);
-//        Set<Id> randomPersonsIds = rps.randomPopulation();
+        RandomPopulationSample rps = new RandomPopulationSample(500,population);
+        Set<Id> randomPersonsIds = rps.randomPopulation();
 //        System.out.println(randomPersonsIds);
 
-        // Single person
+//        // Single person
         Id<Person> myPersonId = Id.createPersonId("18869_2");
-        Set<Id> randomPersonsIds = new HashSet<Id>();
-        randomPersonsIds.add(myPersonId);
+//        Id<Person> myPersonId2 = Id.createPersonId("18869_1");
+//        Set<Id> randomPersonsIds = new HashSet<Id>();
+//        randomPersonsIds.add(myPersonId);
+//        randomPersonsIds.add(myPersonId2);
 
         //create an event object
         EventsManager events = EventsUtils.createEventsManager();
@@ -89,9 +93,18 @@ public class RunAnalysis {
 //        MyVehiclesEventHandler vecEventHandler = new MyVehiclesEventHandler(vehicles,randomPersonsIds);
 //        events.addHandler(vecEventHandler);
 
-        //create the reader and read the file
-//        MatsimEventsReader eventReader = new MatsimEventsReader(events);
-//        eventReader.readFile(inputEventFile);
+        //create the handler and add it
+        MyPathEventHandler pathEventHandler = new MyPathEventHandler(myPersonId,network,randomPersonsIds);
+        events.addHandler(pathEventHandler);
+
+
+        // create the reader and read the file
+        MatsimEventsReader eventReader = new MatsimEventsReader(events);
+        eventReader.readFile(inputEventFile);
+
+        pathEventHandler.writeCSV("xy_test.csv");
+        pathEventHandler.printMisc();
+        //pathEventHandler.closeFile();
 
 
 //        vecEventHandler.printInfected();
@@ -106,12 +119,11 @@ public class RunAnalysis {
 //        facEventHandler.closeFile();
 ////        facEventHandler.writeChart();
 
-        for (Person person : population.getPersons().values()){
-            System.out.println("personId "+ person.getId());
-            String plan = person.getSelectedPlan().getPlanElements().get(0).toString();
-
-            System.out.println(plan);
-        }
+//        for (Person person : population.getPersons().values()){
+//            PlanElement myPlan = person.getSelectedPlan().getPlanElements().get(0);
+//            //System.out.println(person.getSelectedPlan().getPlanElements().get(0));
+//            System.out.println(myPlan.);
+//        }
 
 
         System.out.println("Events file read!");
