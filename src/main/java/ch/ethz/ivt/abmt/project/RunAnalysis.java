@@ -83,15 +83,15 @@ public class RunAnalysis {
 
 
         //create the handler and add it
-        MyXYFacilitiesEventHandler facEventHandler = new MyXYFacilitiesEventHandler(activityFacilities,randomPersonsIds,network);
-        events.addHandler(facEventHandler);
+//        MyXYFacilitiesEventHandler facEventHandler = new MyXYFacilitiesEventHandler(activityFacilities,randomPersonsIds,network);
+//        events.addHandler(facEventHandler);
 
 //        MyVehiclesEventHandler vecEventHandler = new MyVehiclesEventHandler(vehicles,randomPersonsIds);
 //        events.addHandler(vecEventHandler);
 
         //create the reader and read the file
-        MatsimEventsReader eventReader = new MatsimEventsReader(events);
-        eventReader.readFile(inputEventFile);
+//        MatsimEventsReader eventReader = new MatsimEventsReader(events);
+//        eventReader.readFile(inputEventFile);
 
 
 //        vecEventHandler.printInfected();
@@ -103,8 +103,16 @@ public class RunAnalysis {
 //
 //
         // todo find a better solution for this
-        facEventHandler.closeFile();
-//        facEventHandler.writeChart();
+//        facEventHandler.closeFile();
+////        facEventHandler.writeChart();
+
+        for (Person person : population.getPersons().values()){
+            System.out.println("personId "+ person.getId());
+            String plan = person.getSelectedPlan().getPlanElements().get(0).toString();
+
+            System.out.println(plan);
+        }
+
 
         System.out.println("Events file read!");
 
