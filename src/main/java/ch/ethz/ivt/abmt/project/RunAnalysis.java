@@ -67,15 +67,15 @@ public class RunAnalysis {
         Vehicles vehicles = scenario.getVehicles();
 
         // Generate a random sample of persons from the population
-        RandomPopulationSample rps = new RandomPopulationSample(500,population);
-        Set<Id> randomPersonsIds = rps.randomPopulation();
-//        System.out.println(randomPersonsIds);
+//        RandomPopulationSample rps = new RandomPopulationSample(5,population);
+//        Set<Id> randomPersonsIds = rps.randomPopulation();
+        //System.out.println(randomPersonsIds);
 
 //        // Single person
         Id<Person> myPersonId = Id.createPersonId("18869_2");
 //        Id<Person> myPersonId2 = Id.createPersonId("18869_1");
-//        Set<Id> randomPersonsIds = new HashSet<Id>();
-//        randomPersonsIds.add(myPersonId);
+        Set<Id> randomPersonsIds = new HashSet<Id>();
+        randomPersonsIds.add(myPersonId);
 //        randomPersonsIds.add(myPersonId2);
 
         //create an event object
@@ -94,7 +94,7 @@ public class RunAnalysis {
 //        events.addHandler(vecEventHandler);
 
         //create the handler and add it
-        MyPathEventHandler pathEventHandler = new MyPathEventHandler(myPersonId,network,randomPersonsIds);
+        MyPathEventHandler pathEventHandler = new MyPathEventHandler(scenario,randomPersonsIds);
         events.addHandler(pathEventHandler);
 
 
@@ -102,7 +102,7 @@ public class RunAnalysis {
         MatsimEventsReader eventReader = new MatsimEventsReader(events);
         eventReader.readFile(inputEventFile);
 
-        pathEventHandler.writeCSV("xy_test.csv");
+        pathEventHandler.writeCSV("output/xy_test.csv");
         pathEventHandler.printMisc();
         //pathEventHandler.closeFile();
 

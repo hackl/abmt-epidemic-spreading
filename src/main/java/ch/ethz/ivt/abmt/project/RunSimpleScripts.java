@@ -26,11 +26,23 @@ public class RunSimpleScripts {
         System.out.println(myMap.get(1).contains("A"));
 
         List<String> myList = new ArrayList<String>();
-        myList.add("A");
-        myList.add("E");
+        myList.add("C");
+        myList.add("Y");
+        myList.add("Z");
 
         System.out.println(myList);
         System.out.println(!Collections.disjoint(myMap.get(1),myList));
+
+
+        Set<String> intersection = new HashSet<String>(myMap.get(1)); // use the copy constructor
+        intersection.retainAll(myList);
+
+        System.out.println("inter"+intersection);
+
+        if(intersection.size() == 0){
+            System.out.println("ddddddddddddddddddd");
+        }
+
 
         Set setboth = new HashSet(myList);
         setboth.addAll(myMap.get(1));
