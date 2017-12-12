@@ -1,5 +1,7 @@
 package ch.ethz.ivt.abmt.project;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
@@ -39,6 +41,8 @@ public class RunAnalysis {
         String inputPopulationFile = "scenarios/SiouxFalls/population.xml.gz";
         //Path to the transit vehicle file
         String inputVehicleFile = "output/output_transitVehicles.xml.gz";
+
+        Logger.getRootLogger().setLevel( Level.WARN );
 
         /** Setup example and load objects**/
         // create a config file
