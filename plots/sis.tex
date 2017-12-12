@@ -1,0 +1,129 @@
+\documentclass[8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+
+\usepackage{xcolor}
+\makeatletter
+\def\@hex@@Hex#1%
+ {\if a#1A\else \if b#1B\else \if c#1C\else \if d#1D\else
+  \if e#1E\else \if f#1F\else #1\fi\fi\fi\fi\fi\fi \@hex@Hex}
+\makeatother
+
+\pgfplotsset{compat=1.10}
+
+\pgfplotsset{
+    legend image with text/.style={
+        legend image code/.code={%
+            \node[anchor=center,font=\scriptsize,scale=.5] at (0.3cm,0cm) {#1};
+        }
+    },
+}
+
+\usepgfplotslibrary{fillbetween}
+\DeclareMathOperator{\CDF}{cdf}
+
+\def\cdf(#1)(#2)(#3){0.5*(1+(erf((log(#1)-log(#2))/(#3*sqrt(2)))))}%
+
+\tikzset{
+    declare function={
+        normcdf(\x,\m,\s)=1/(1 + exp(-0.07056*((\x-\m)/\s)^3 - 1.5976*(\x-\m)/\s));
+    }
+}
+
+\def\fun(#1)(#2){(#2-120*exp(-0.10814*#1))/#2}
+
+
+% grid style
+%\pgfplotsset{grid style={dashed,gray}}
+\pgfplotsset{minor grid style={ultra thin,densely dotted,black!70}}
+\pgfplotsset{major grid style={ultra thin,black!70}}
+\pgfplotsset{tick style={draw=none}}
+%\pgfplotsset{every tick label/.append style={font=\tiny}}
+
+
+\definecolor{col0}{HTML}{607b2c}
+\definecolor{col1}{HTML}{8eba42}
+\definecolor{col2}{HTML}{348abd}
+\definecolor{col3}{HTML}{e24a33}
+\definecolor{col4}{HTML}{fbc15e}
+\definecolor{col5}{HTML}{988ed5}
+\definecolor{col6}{HTML}{777777}
+\definecolor{col7}{HTML}{ffb5b8}
+\definecolor{col8}{HTML}{f47c57}
+
+
+\pgfplotscreateplotcyclelist{myCycleList}{%
+{col1},
+{col2},
+{col3},
+{col4},
+{col5},
+{col6},
+{col7},
+{col8},
+{col1},
+{col2},
+{col3},
+{col4},
+{col5},
+{col6},
+{col7},
+{col8},
+}
+
+
+\pgfplotsset{
+    axis line style={white},
+    major grid style={white},
+    every axis label/.append style ={black},
+    every tick label/.append style={black},
+    every  tick/.style={black!50,},
+    axis background/.style={fill=gray!20},
+    major tick length=-1mm,
+    minor tick length=-.7mm
+  }
+
+
+
+
+
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[%
+  x label style={at={(axis description cs:0.5,-0.1)},anchor=north},
+  y label style={at={(axis description cs:-0.1,.5)},anchor=south},
+  xlabel={Time during the epidemic event [$days$]},
+  ylabel={Affected population [$\#$]},
+  title={SIS-Model Sioux Falls},
+  grid=both,
+  %xmode=log,
+  %ymode=log,
+  width=80mm,
+  height=50mm,
+  xmin=0,xmax=25,
+  ymin=0,
+  ymax=85000,
+  % ymax=6000000,
+ label style={font=\footnotesize},
+ tick label style={font=\scriptsize},
+legend columns=1,
+legend style={font=\scriptsize,at={(0.02,.98)},anchor=north west,draw=none,fill= gray!20,fill opacity=0.5, text opacity = 1},
+legend image post style={scale=0.5},  %%% <--- here
+cycle list name=myCycleList],
+]
+\addplot[line width=1pt,col2] table [x=day, y=susceptible, col sep=comma] {./data/sis.csv};
+\addplot[line width=1pt,col3] table [x=day, y=infected, col sep=comma] {./data/sis.csv};
+%\addplot[line width=1pt,col1] table [x=day, y=recovered, col sep=comma] {./data/sir.csv};
+\addlegendentry{susceptible}
+\addlegendentry{infected}
+%\addlegendentry{recovered}
+
+\end{axis}
+
+
+\end{tikzpicture}
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

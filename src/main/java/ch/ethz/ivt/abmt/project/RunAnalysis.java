@@ -72,11 +72,13 @@ public class RunAnalysis {
         //System.out.println(randomPersonsIds);
 
 //        // Single person
-        Id<Person> myPersonId = Id.createPersonId("18869_2");
-//        Id<Person> myPersonId2 = Id.createPersonId("18869_1");
+        Id<Person> myPersonId = Id.createPersonId("18869_2");//"18869_2");
+        //Id<Person> myPersonId2 = Id.createPersonId("18869_1");
+        //Id<Person> myPerson3 = Id.createPersonId("20730_4");
         Set<Id> randomPersonsIds = new HashSet<Id>();
         randomPersonsIds.add(myPersonId);
-//        randomPersonsIds.add(myPersonId2);
+        //randomPersonsIds.add(myPersonId2);
+        //randomPersonsIds.add(myPerson3);
 
         //create an event object
         EventsManager events = EventsUtils.createEventsManager();
@@ -115,9 +117,9 @@ public class RunAnalysis {
 //        facEventHandler.printInfected();
 //
 //
-        // todo find a better solution for this
+//        // todo find a better solution for this
 //        facEventHandler.closeFile();
-////        facEventHandler.writeChart();
+//        facEventHandler.writeChart();
 
 //        for (Person person : population.getPersons().values()){
 //            PlanElement myPlan = person.getSelectedPlan().getPlanElements().get(0);

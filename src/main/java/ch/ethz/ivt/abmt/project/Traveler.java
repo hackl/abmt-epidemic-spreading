@@ -136,35 +136,49 @@ public class Traveler {
     }
 
     public ArrayList getPathList() {
-        for(int i = 0;i<pathListRaw.size()-1;i++){
-            Map u = pathListRaw.get(i);
-            Map v = pathListRaw.get(i+1);
-            Map<String,Object> pathPoint = new HashMap();
 
-            if((Double) u.get("t") - (Double) v.get("t") != 0.0){
-                pathPoint.put("x",u.get("x"));
-                pathPoint.put("y",u.get("y"));
-                pathPoint.put("t1",u.get("t"));
-                pathPoint.put("t2",v.get("t"));
+        if (pathListRaw.size() == 1){
+            Map v = pathListRaw.get(0);
+            Map<String, Object> pathPoint = new HashMap();
+            pathPoint.put("x", v.get("x"));
+            pathPoint.put("y", v.get("y"));
+            pathPoint.put("t1", v.get("t"));
+            pathPoint.put("t2", 3600 * 24);
+            //pathPoint.put("actType",v.get("actType"));
+            pathList.add(pathPoint);
+        }
+        else{
+        for(int i = 0;i<pathListRaw.size()-1;i++) {
+            Map u = pathListRaw.get(i);
+            Map v = pathListRaw.get(i + 1);
+            Map<String, Object> pathPoint = new HashMap();
+
+            if ((Double) u.get("t") - (Double) v.get("t") != 0.0) {
+                pathPoint.put("x", u.get("x"));
+                pathPoint.put("y", u.get("y"));
+                pathPoint.put("t1", u.get("t"));
+                pathPoint.put("t2", v.get("t"));
                 //pathPoint.put("actType",u.get("actType"));
                 pathList.add(pathPoint);
 
-                if (i == pathListRaw.size()-2){
-                    pathPoint.put("x",v.get("x"));
-                    pathPoint.put("y",v.get("y"));
-                    pathPoint.put("t1",v.get("t"));
-                    pathPoint.put("t2",3600*24);
+                if (i == pathListRaw.size() - 2) {
+                    pathPoint.put("x", v.get("x"));
+                    pathPoint.put("y", v.get("y"));
+                    pathPoint.put("t1", v.get("t"));
+                    pathPoint.put("t2", 3600 * 24);
                     //pathPoint.put("actType",v.get("actType"));
                     pathList.add(pathPoint);
                 }
             }
 
+        }
 
+            pathList.remove(pathList.size()-1);
 
 
         }
 
-        pathList.remove(pathList.size()-1);
+
         return pathList;
     }
 

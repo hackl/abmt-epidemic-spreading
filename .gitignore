@@ -56,3 +56,5 @@ pom.xml.releaseBackup
 pom.xml.tag
 output/
 scenarios/
+misc/
+output_zurich_1p

@@ -31,11 +31,13 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
     // create an empty map with vehicle ids as keys and empty set as values
     private Map<Id,Set<Id>> vehicleVisitors = new HashMap();
     public Set<Id> myPersonsIds;
+    //public Set<Id> infectedPersonsIds;
 
     public MyPathEventHandler(Scenario scenario, Set<Id> myPersonsIds){
         this.network = scenario.getNetwork();
         this.activityFacilities = scenario.getActivityFacilities();
         this.myPersonsIds = myPersonsIds;
+        //this.infectedPersonsIds = null;
         this.vehicles = scenario.getVehicles();
         // go through all persons and append Id to map
         for ( Id person : myPersonsIds ) {
@@ -55,14 +57,97 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
     }
 
     @Override
+    public void handleEvent(ActivityStartEvent event) {
+        // do not consider pt interactions
+        if (!"pt interaction".equals(event.getActType())) {
+
+//            if (!travelers.keySet().contains(event.getPersonId())) {
+//                if (event.getPersonId().equals(Id.createPersonId("20730_4"))) {
+//                    System.out.println("new start");
+//                    System.out.println(event.getPersonId());
+//                    travelers.put(event.getPersonId(), new Traveler(event.getPersonId()));
+//                    System.out.println(travelers.get(event.getPersonId()).getTravelerId());
+//                    System.out.println(event.getAttributes());
+//                    myPersonsIds.add(event.getPersonId());
+//                    System.out.println("new end");
+//
+//                }
+//            }
+
+            // add person to the facility
+            facilitesVisitors.get(event.getFacilityId()).add(event.getPersonId());
+
+//            // check if infected person is in the facility
+//            // todo code is very slow, probably there is a better solution
+//            if (!Collections.disjoint(facilitesVisitors.get(event.getFacilityId()),myPersonsIds)){
+//                myPersonsIds.add(event.getPersonId());
+//                travelers.put(event.getPersonId(),new Traveler(event.getPersonId()));
+//            }
+//                infectedPersonsIds.add(event.getPersonId());
+
+            Set<Id> intersection = new HashSet<Id>(facilitesVisitors.get(event.getFacilityId())); // use the copy constructor
+            intersection.retainAll(travelers.keySet());
+
+            if(intersection.size() != 0){
+                for(Id personId:intersection){
+                    travelers.get(personId).addFriendsIds(facilitesVisitors.get(event.getFacilityId()));
+                    travelers.get(personId).addFriendInteraction(event.getPersonId(),event.getTime(),"connect2",event.getFacilityId(),event.getLinkId(),event.getActType());
+
+                    if (!travelers.keySet().contains(event.getPersonId())) {
+                        travelers.put(event.getPersonId(), new Traveler(event.getPersonId()));
+
+                    }
+                        //if (event.getPersonId().equals(Id.createPersonId("20730_4"))) {
+//                        System.out.println("new start");
+//                            System.out.println(event.getPersonId());
+//                            travelers.put(event.getPersonId(), new Traveler(event.getPersonId()));
+//                            System.out.println(travelers.get(event.getPersonId()).getTravelerId());
+//                            System.out.println(event.getAttributes());
+//                            myPersonsIds.add(event.getPersonId());
+//                            System.out.println("new end");
+//
+//                        //}
+//                    }
+
+
+//                    myPersonsIds.add(event.getPersonId());
+//                    travelers.put(event.getPersonId(),new Traveler(event.getPersonId()));
+                }
+            }
+
+
+            // check if the person is in the map of travelers
+            Traveler value = travelers.get(event.getPersonId());
+            if (value != null){
+                Id<Link> linkId = event.getLinkId();
+                Link link = network.getLinks().get(linkId);
+                Coord coord = link.getCoord();
+
+                // add data to the traveler
+                travelers.get(event.getPersonId()).addPathPoint(coord.getX(),coord.getY(),event.getTime(),event.getEventType(),event.getFacilityId(),event.getLinkId(),event.getActType());
+
+                // add friends to the traveler
+                for (Id friend:facilitesVisitors.get(event.getFacilityId())){
+                    travelers.get(event.getPersonId()).addFriendInteraction(friend,event.getTime(),"connect1",event.getFacilityId(),event.getLinkId(),event.getActType());
+                }
+                //travelers.get(event.getPersonId()).addFriendsIds(facilitesVisitors.get(event.getFacilityId()));
+
+            }
+        }
+    }
+
+
+    @Override
     public void handleEvent(ActivityEndEvent event) {
         // do not consider pt interactions
         if (!"pt interaction".equals(event.getActType())) {
 
+
+
 //            System.out.println("facId "+event.getFacilityId());
 //            System.out.println(facilitesVisitors.get(event.getFacilityId()));
             Set<Id> intersection = new HashSet<Id>(facilitesVisitors.get(event.getFacilityId())); // use the copy constructor
-            intersection.retainAll(myPersonsIds);
+            intersection.retainAll(travelers.keySet());
 
             if(intersection.size() != 0){
                 for(Id personId:intersection){
@@ -91,54 +176,16 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
                 //travelers.get(event.getPersonId()).addFriendsIds(facilitesVisitors.get(event.getFacilityId()));
 
             }
-        }
-    }
 
-    @Override
-    public void handleEvent(ActivityStartEvent event) {
-        // do not consider pt interactions
-        if (!"pt interaction".equals(event.getActType())) {
-
-            // add person to the facility
-            facilitesVisitors.get(event.getFacilityId()).add(event.getPersonId());
-
-            // check if infected person is in the facility
-            // todo code is very slow, probably there is a better solution
-//            if (!Collections.disjoint(facilitesVisitors.get(event.getFacilityId()),myPersonsIds)){
-//                myPersonsIds.
+//            if (event.getPersonId().equals(Id.createPersonId("20730_4"))){
+//                System.out.println(event.getPersonId());
+//                System.out.println(travelers.get(event.getPersonId()).getTravelerId());
+////                travelers.put(event.getPersonId(),new Traveler(event.getPersonId()));
 //            }
-//                infectedPersonsIds.add(event.getPersonId());
-
-            Set<Id> intersection = new HashSet<Id>(facilitesVisitors.get(event.getFacilityId())); // use the copy constructor
-            intersection.retainAll(myPersonsIds);
-
-            if(intersection.size() != 0){
-                for(Id personId:intersection){
-                    travelers.get(personId).addFriendsIds(facilitesVisitors.get(event.getFacilityId()));
-                    travelers.get(personId).addFriendInteraction(event.getPersonId(),event.getTime(),"connect2",event.getFacilityId(),event.getLinkId(),event.getActType());
-                }
-            }
-
-
-            // check if the person is in the map of travelers
-            Traveler value = travelers.get(event.getPersonId());
-            if (value != null){
-                Id<Link> linkId = event.getLinkId();
-                Link link = network.getLinks().get(linkId);
-                Coord coord = link.getCoord();
-
-                // add data to the traveler
-                travelers.get(event.getPersonId()).addPathPoint(coord.getX(),coord.getY(),event.getTime(),event.getEventType(),event.getFacilityId(),event.getLinkId(),event.getActType());
-
-                // add friends to the traveler
-                for (Id friend:facilitesVisitors.get(event.getFacilityId())){
-                    travelers.get(event.getPersonId()).addFriendInteraction(friend,event.getTime(),"connect1",event.getFacilityId(),event.getLinkId(),event.getActType());
-                }
-                //travelers.get(event.getPersonId()).addFriendsIds(facilitesVisitors.get(event.getFacilityId()));
-
-            }
         }
     }
+
+
 
     @Override
     public void handleEvent(LinkEnterEvent event) {
@@ -188,16 +235,22 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
 
 
                 Set<Id> intersection = new HashSet<Id>(vehicleVisitors.get(event.getVehicleId())); // use the copy constructor
-                intersection.retainAll(myPersonsIds);
+                intersection.retainAll(travelers.keySet());
 
                 if (intersection.size() != 0) {
                     for (Id personId : intersection) {
                         travelers.get(personId).addFriendInteraction(event.getPersonId(), event.getTime(), "connect2", event.getVehicleId(), null, "pt");
+
+//                        if (!travelers.keySet().contains(event.getPersonId())) {
+//                            travelers.put(event.getPersonId(), new Traveler(event.getPersonId()));
+
+                        }
+
                     }
                     //travelers.get(personId).addFriendInteraction(event.getPersonId(), event.getTime(), "connect2", event.getVehicleId(), null, "pt");
                 }
             }
-        }
+
 
 
 
@@ -234,7 +287,7 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
             if (Character.isDigit(event.getPersonId().toString().charAt(0))) {
 
                 Set<Id> intersection = new HashSet<Id>(vehicleVisitors.get(event.getVehicleId())); // use the copy constructor
-                intersection.retainAll(myPersonsIds);
+                intersection.retainAll(travelers.keySet());
 
                 if (intersection.size() != 0) {
                     for (Id personId : intersection) {
@@ -272,14 +325,18 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
     }
 
     public void printMisc(){
-        for (Traveler traveler: travelers.values()){
-            //trav.writePaths2CSV(trav.getTravelerId().toString()+".csv");
-            //ArrayList myList = traveler.getPathList();
-            //System.out.println(myList.size());
-            //traveler.writePaths2CSV("text.csv");
-//            traveler.getFriendsIds();
-            //traveler.getFriends();
-        }
+//        for (Traveler traveler: travelers.values()){
+//            //trav.writePaths2CSV(trav.getTravelerId().toString()+".csv");
+//            //ArrayList myList = traveler.getPathList();
+//            //System.out.println(myList.size());
+//            //traveler.writePaths2CSV("text.csv");
+////            traveler.getFriendsIds();
+//            //traveler.getFriends();
+//            //System.out.println(traveler.getTravelerId());
+//            //System.out.println(traveler.getPathList());
+//        }
+        System.out.println(travelers.size());
+        //System.out.println(myPersonsIds.size());
 
         //traveler.writePaths2CSV("test.csv");
         //System.out.println(traveler.getPathList());
