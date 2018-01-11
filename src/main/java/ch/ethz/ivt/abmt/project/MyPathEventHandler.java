@@ -31,12 +31,14 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
     // create an empty map with vehicle ids as keys and empty set as values
     private Map<Id,Set<Id>> vehicleVisitors = new HashMap();
     public Set<Id> myPersonsIds;
+    public final Set<Id> myInitialPersonsIds;
     //public Set<Id> infectedPersonsIds;
 
     public MyPathEventHandler(Scenario scenario, Set<Id> myPersonsIds){
         this.network = scenario.getNetwork();
         this.activityFacilities = scenario.getActivityFacilities();
         this.myPersonsIds = myPersonsIds;
+        this.myInitialPersonsIds = myPersonsIds;
         //this.infectedPersonsIds = null;
         this.vehicles = scenario.getVehicles();
         // go through all persons and append Id to map
@@ -61,19 +63,6 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
         // do not consider pt interactions
         if (!"pt interaction".equals(event.getActType())) {
 
-//            if (!travelers.keySet().contains(event.getPersonId())) {
-//                if (event.getPersonId().equals(Id.createPersonId("20730_4"))) {
-//                    System.out.println("new start");
-//                    System.out.println(event.getPersonId());
-//                    travelers.put(event.getPersonId(), new Traveler(event.getPersonId()));
-//                    System.out.println(travelers.get(event.getPersonId()).getTravelerId());
-//                    System.out.println(event.getAttributes());
-//                    myPersonsIds.add(event.getPersonId());
-//                    System.out.println("new end");
-//
-//                }
-//            }
-
             // add person to the facility
             facilitesVisitors.get(event.getFacilityId()).add(event.getPersonId());
 
@@ -93,6 +82,7 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
                     travelers.get(personId).addFriendsIds(facilitesVisitors.get(event.getFacilityId()));
                     travelers.get(personId).addFriendInteraction(event.getPersonId(),event.getTime(),"connect2",event.getFacilityId(),event.getLinkId(),event.getActType());
 
+                    // add person with prob 1 to infected
                     if (!travelers.keySet().contains(event.getPersonId())) {
                         travelers.put(event.getPersonId(), new Traveler(event.getPersonId()));
 
@@ -324,18 +314,25 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
         }
     }
 
+    public Set<Id> getInfected(){
+        return travelers.keySet();
+    }
+
     public void printMisc(){
 //        for (Traveler traveler: travelers.values()){
 //            //trav.writePaths2CSV(trav.getTravelerId().toString()+".csv");
 //            //ArrayList myList = traveler.getPathList();
 //            //System.out.println(myList.size());
 //            //traveler.writePaths2CSV("text.csv");
-////            traveler.getFriendsIds();
-//            //traveler.getFriends();
+//            traveler.getFriendsIds();
+//            traveler.getFriendList();
 //            //System.out.println(traveler.getTravelerId());
-//            //System.out.println(traveler.getPathList());
+////            System.out.println(traveler.getTravelerId());
+////            System.out.println(traveler.getPathListRaw());
 //        }
         System.out.println(travelers.size());
+        System.out.println(travelers.keySet());
+
         //System.out.println(myPersonsIds.size());
 
         //traveler.writePaths2CSV("test.csv");
@@ -344,20 +341,54 @@ public class MyPathEventHandler implements ActivityEndEventHandler,ActivityStart
 
     }
 
+    public void writeFriends2CSV(String filename){
+        writer = IOUtils.getBufferedWriter(filename);
+        try{
+            writer.write("u,v,t1,t2");
+            for (Traveler traveler: travelers.values()){
+                ArrayList<Map<String,Object>> friendList = traveler.getFriendList();
+                for (Map<String, Object> row : friendList) {
+                    writer.newLine();
+                    writer.write(row.get("u").toString() + "," +
+                                row.get("v").toString() + "," +
+                                row.get("t1").toString() + "," +
+                                row.get("t2").toString());
+                }
+            }
+            writer.close();
+        } catch (IOException e){
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void writeCSV(String filename){
         writer = IOUtils.getBufferedWriter(filename);
         try{
             writer.write("id,x,y,t1,t2");
             for (Traveler traveler: travelers.values()){
                 ArrayList<Map<String,Object>> pathList = traveler.getPathList();
-                for (Map<String,Object> row: pathList){
-                    writer.newLine();
-                    writer.write(traveler.getTravelerId() +","+
-                            row.get("x").toString()+","+
-                            row.get("y").toString()+","+
-                            row.get("t1").toString()+","+
-                            row.get("t2").toString());//+","+
-                            //row.get("actType").toString());
+                if(pathList.size()>0) {
+
+                    // add agent to the beginning of the simulation
+                    if (this.myInitialPersonsIds.contains(traveler.getTravelerId())) {
+                        writer.newLine();
+                        writer.write(traveler.getTravelerId() + "," +
+                                pathList.get(0).get("x").toString() + "," +
+                                pathList.get(0).get("y").toString() + "," +
+                                "4263," +
+                                pathList.get(0).get("t1").toString());
+                    }
+
+
+                    for (Map<String, Object> row : pathList) {
+                        writer.newLine();
+                        writer.write(traveler.getTravelerId() + "," +
+                                row.get("x").toString() + "," +
+                                row.get("y").toString() + "," +
+                                row.get("t1").toString() + "," +
+                                row.get("t2").toString());//+","+
+                        //row.get("actType").toString());
+                    }
                 }
             }
             writer.close();

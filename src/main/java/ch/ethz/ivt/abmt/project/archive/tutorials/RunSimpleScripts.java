@@ -1,4 +1,4 @@
-package ch.ethz.ivt.abmt.project;
+package ch.ethz.ivt.abmt.project.archive.tutorials;
 
 import java.util.*;
 
@@ -53,7 +53,43 @@ public class RunSimpleScripts {
 
         System.out.println("Events file read!");
 
+        Set<String> facilitesVisitors = new HashSet<>();
+        Set<String> infectedPersonsIds = new HashSet<>();
 
+        facilitesVisitors.add("A");
+        facilitesVisitors.add("B");
+        facilitesVisitors.add("C");
+        facilitesVisitors.add("D");
+
+        infectedPersonsIds.add("C");
+        infectedPersonsIds.add("E");
+
+        System.out.println(!Collections.disjoint(facilitesVisitors,infectedPersonsIds));
+        //if (!Collections.disjoint(facilitesVisitors.get(event.getFacilityId()),infectedPersonsIds)){
+
+        //Set<String> intersection = new HashSet<>(); // use the copy constructor
+        System.out.println(facilitesVisitors.retainAll(infectedPersonsIds));
+
+
+        int[] a = new int[] {0, 0, 0, -1, 1, 8, 3, 0, 0};
+
+        int value = 0;
+        for (int i:a) {
+            if(i>0){
+                value=i;
+                break;
+            }
+        }
+
+        for (int i=0;i<a.length;i++) {
+            if(a[i]<1){
+                a[i] = value;
+            }
+        }
+        for(int i:a) {
+            System.out.println(i);
+        }
+        //System.out.println("second lareges "+ secondLargest(a));
 
         //        // go through all facilities and print Id
 //        for ( ActivityFacility fac : activityFacilities.getFacilities().values() ) {
@@ -82,4 +118,7 @@ public class RunSimpleScripts {
 //            System.out.println(vec.getId());
 //        }
     }
+
+
+
 }

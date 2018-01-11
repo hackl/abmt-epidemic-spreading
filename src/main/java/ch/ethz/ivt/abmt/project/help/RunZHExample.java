@@ -14,7 +14,8 @@ import org.matsim.core.scenario.ScenarioUtils;
  */
 public class RunZHExample {
 	static public void main(String[] args) {
-		Config config = ConfigUtils.loadConfig(args[0]);
+//		Config config = ConfigUtils.loadConfig("scenarios/scenario_v6/config.xml");
+		Config config = ConfigUtils.loadConfig("scenarios/abmt_pt_scenario/config.xml");
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		Controler controler = new Controler(scenario);

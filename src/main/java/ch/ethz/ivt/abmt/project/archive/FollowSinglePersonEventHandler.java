@@ -1,4 +1,4 @@
-package ch.ethz.ivt.abmt.project;
+package ch.ethz.ivt.abmt.project.archive;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.ActivityEndEvent;

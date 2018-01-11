@@ -57,4 +57,6 @@ pom.xml.tag
 output/
 scenarios/
 misc/
-output_zurich_1p
+results/
+simulation_output/
+simulation_output_pt/

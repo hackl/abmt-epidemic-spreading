@@ -6,8 +6,6 @@ import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.ActivityStartEvent;
 import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
 import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
-import org.matsim.core.utils.charts.XYLineChart;
-import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
@@ -16,19 +14,26 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * MySIREventHandler
+ *
+ * Evaluate the events and extract information for the SIR model
+ *
+ * **/
+
 public class MySIREventHandler implements ActivityStartEventHandler,ActivityEndEventHandler {
+
+    // initialize values
     private ActivityFacilities activityFacilities;
     private Set<Id> infectedPersonsIds;
+    private Double infectionProbability;
     private Set<Id> recoveredPersonsIds;
     // create an empty map with facilities ids as keys and empty lists as values
     public Map<Id,Set<Id>> facilitesVisitors = new HashMap();
-    private Double infectionProbability;
 
-    // initialize XY plot
-    private List<Integer> infected = new ArrayList<Integer>();
-    private List<Double> time = new ArrayList<Double>();
-    // initialize XY plot
-    int[] infectedV = new int[25];
+    // initialize vector to sum up the results per hour
+    // in order to deal with plans going beyond 24 hours 30 hours are considered
+    int[] infected = new int[30];
 
     // initialize output file
     private BufferedWriter writer = null;
@@ -39,7 +44,6 @@ public class MySIREventHandler implements ActivityStartEventHandler,ActivityEndE
         this.infectedPersonsIds = infectedPersonsIds;
         this.recoveredPersonsIds = recoveredPersonsIds;
         this.infectionProbability = infectionProbability;
-
 
         // go through all facilities and append Id to map
         for ( ActivityFacility fac : activityFacilities.getFacilities().values() ) {
@@ -56,28 +60,28 @@ public class MySIREventHandler implements ActivityStartEventHandler,ActivityEndE
             // add person to the facility
             facilitesVisitors.get(event.getFacilityId()).add(event.getPersonId());
 
-            // check if infected person is in the facility
-            if (!Collections.disjoint(facilitesVisitors.get(event.getFacilityId()),infectedPersonsIds)){
-                // check if person is immune (recoverd)
+            // check if person is not already infected
+            if (!infectedPersonsIds.contains(event.getPersonId())) {
+                // check if person is immune (recovered)
                 if (!recoveredPersonsIds.contains(event.getPersonId())) {
-                    // infect person with probability p
-                    double rand = Math.random();
+                // check if infected person is in the facility
+                if (!Collections.disjoint(facilitesVisitors.get(event.getFacilityId()), infectedPersonsIds)) {
 
-                    if (rand < infectionProbability) {
-                        infectedPersonsIds.add(event.getPersonId());
+                        // infect person with probability p
+                        double rand = Math.random();
+                        if (rand < infectionProbability) {
+                            infectedPersonsIds.add(event.getPersonId());
+                        }
+
+                        // Update result vectors
+                        double hour = event.getTime() / 3600;
+                        this.infected[(int) hour] = infectedPersonsIds.size();
                     }
-
-                    // Update plot vectors
-                    double hour = event.getTime() / 3600;
-                    this.infectedV[(int) hour] = infectedPersonsIds.size();
-//                    this.infected.add(infectedPersonsIds.size());
-//                    this.time.add(event.getTime() / 3600);
                 }
             }
         }
 
     }
-
 
     @Override
     public void handleEvent(ActivityEndEvent event) {
@@ -93,39 +97,15 @@ public class MySIREventHandler implements ActivityStartEventHandler,ActivityEndE
         System.out.println("reset...");
     }
 
-    public void printInfected(){
-        System.out.println(infectedPersonsIds.size());
-    }
-
-    public void writeChart(String filename){
-        double[] y = new double[this.infected.size()];
-        double[] x = new double[this.infected.size()];
-        for (int i = 0; i < y.length; i++) {
-            y[i] = this.infected.get(i);
-            x[i] = this.time.get(i);
-        }
-        XYLineChart chart = new XYLineChart("Spreading","Hour","Infected");
-        chart.addSeries("times", x, y);
-        chart.saveAsPng(filename, 800, 600);
-    }
-
-
-    public void writeCSV(String filename){
-        this.writer = IOUtils.getBufferedWriter(filename);
+    public void writeLine2CSV(BufferedWriter writer,Integer simNumber){
+        // write SI output to file
         try{
-            writer.write("time,infected");
-//            for (int i=0; i<this.time.size();i++){
-//                writer.newLine();
-//                writer.write(this.time.get(i)+","+this.infected.get(i));
-//            }
-            for (int i=0; i<25;i++){
+            for (int i=1; i<25;i++){
                 writer.newLine();
-                writer.write(i+","+this.infectedV[i]);
+                writer.write(simNumber+","+i+","+this.infected[i]);
             }
-            writer.close();
         } catch (IOException e){
             throw new UncheckedIOException(e);
         }
     }
-
 }

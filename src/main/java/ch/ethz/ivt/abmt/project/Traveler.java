@@ -1,6 +1,5 @@
 package ch.ethz.ivt.abmt.project;
 
-import com.sun.org.apache.xpath.internal.functions.FuncFalse;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.utils.io.IOUtils;
@@ -10,22 +9,25 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Traveler
+ *
+ * Class to collect specific information from the traffic simulation
+ *
+ * **/
+
+
 public class Traveler {
+    // initialize variables
     private Id<Person> travelerId;
     private Id vehicleId;
     private ArrayList<Map<String,Object>> pathListRaw = new ArrayList<Map<String, Object>>();
     private ArrayList<Map<String,Object>> pathList = new ArrayList<Map<String, Object>>();
+    private ArrayList<Map<String,Object>> friendList = new ArrayList<Map<String, Object>>();
     private BufferedWriter writer = null;
-
-//    private HashMap map = new HashMap();
-//    private Set<Map.Entry<Id,String>> friends = map.entrySet();
+    private final int maxDayLength = 30;
     private Set<Id> friendsIds = new HashSet<Id>();
     private Map<Id,ArrayList<Map<String,Object>>> friends = new HashMap();
-
-/**
- * Class to collect specific information from the traffic simulation
- * **/
-
 
     public Traveler(Id<Person> travelerId){
         this.travelerId = travelerId;
@@ -57,24 +59,11 @@ public class Traveler {
         pathPoint.put("linkId",linkId);
         pathPoint.put("actType",actType);
         pathListRaw.add(pathPoint);
-
     }
 
     public  void addFriendsIds(Set<Id> newFriendsIds){
         friendsIds.addAll(newFriendsIds);
     }
-
-    public void getFriendsIds(){
-        System.out.println("========================");
-        System.out.println(friendsIds);
-    }
-
-//    public void addFriend(Id personId,Double time){
-//        Map<String,Object> entry = new HashMap();
-//        entry.put("time1",time);
-//        friends.put(personId,entry);
-//
-//    }
 
     public void addFriendInteraction(Id personId,Double time,String eventType, Id miscId,Id linkId, String actType){
         if(friends.get(personId) != null){
@@ -96,40 +85,41 @@ public class Traveler {
             entry.put("actType",actType);
             attributes.add(entry);
             friends.put(personId,attributes);
-
         }
     }
 
-//    public void removeFriend(Id personId,Double time){
-//
-//        if(friends.get(personId) != null){
-//            friends.get(personId).put("time2",time);
-//        }
-//        else{
-//            Map<String,Object> entry = new HashMap();
-//            entry.put("time2",time);
-//            friends.put(personId,entry);
-//        }
-//    }
-
-    public void getFriends(){
+    public ArrayList getFriendList(){
+        // remove self loops
+        friends.remove(travelerId);
         for (Map.Entry<Id,ArrayList<Map<String,Object>>> friend:friends.entrySet()){
-            int flag = 0;
-            for (Map<String,Object> interaction : friend.getValue()){
-                if (interaction.get("actType").equals("work")){
-                    flag += 1;
-                }
-            }
-            if(flag > 0){
-                System.out.println(friend.getKey() +"  ->  "+friend.getValue());
-            }
-            //if(friend.getValue().get())
 
-            //System.out.println(friend.getValue().size());
+            double times [] = new double[(int) Math.ceil((double)friend.getValue().size()/2)*2];
+            for (int i=0;i<friend.getValue().size();i++){
+                times[i] = new Double(friend.getValue().get(i).get("t").toString());
+            }
+
+            if(friend.getValue().size()<times.length){
+                times[times.length-1] = 3600 * maxDayLength;
+            }
+
+            for (int i=0;i<times.length/2;i++){
+                Map<String, Object> connectionPoint = new HashMap();
+                connectionPoint.put("u",travelerId);
+                connectionPoint.put("v",friend.getKey());
+                for (int j=0;j<2;j++){
+                    if(j==0){
+                        connectionPoint.put("t1",times[i*2+j]);
+                    }
+                    else{
+                        connectionPoint.put("t2",times[i*2+j]);
+                    }
+                }
+                friendList.add(connectionPoint);
+            }
         }
 
+        return friendList;
     }
-
 
     public ArrayList getPathListRaw() {
         return pathListRaw;
@@ -143,11 +133,11 @@ public class Traveler {
             pathPoint.put("x", v.get("x"));
             pathPoint.put("y", v.get("y"));
             pathPoint.put("t1", v.get("t"));
-            pathPoint.put("t2", 3600 * 24);
+            pathPoint.put("t2", 3600 * maxDayLength);
             //pathPoint.put("actType",v.get("actType"));
             pathList.add(pathPoint);
         }
-        else{
+        else if (pathListRaw.size()>1){
         for(int i = 0;i<pathListRaw.size()-1;i++) {
             Map u = pathListRaw.get(i);
             Map v = pathListRaw.get(i + 1);
@@ -165,20 +155,18 @@ public class Traveler {
                     pathPoint.put("x", v.get("x"));
                     pathPoint.put("y", v.get("y"));
                     pathPoint.put("t1", v.get("t"));
-                    pathPoint.put("t2", 3600 * 24);
+                    pathPoint.put("t2", 3600 * maxDayLength);
                     //pathPoint.put("actType",v.get("actType"));
                     pathList.add(pathPoint);
                 }
             }
-
         }
 
-            pathList.remove(pathList.size()-1);
-
-
+        if(pathList.size()>2) {
+            pathList.remove(pathList.size() - 1);
         }
 
-
+        }
         return pathList;
     }
 

@@ -1,4 +1,4 @@
-package ch.ethz.ivt.abmt.project;
+package ch.ethz.ivt.abmt.project.archive;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
@@ -52,6 +52,7 @@ public class MyVehiclesEventHandler implements PersonEntersVehicleEventHandler,P
     @Override
     public void handleEvent(PersonEntersVehicleEvent event) {
         // consider only public transport
+        System.out.println(event.getAttributes());
         // todo fix the way how private vs public is divided
         if (!Character.isDigit(event.getVehicleId().toString().charAt(0))){
 

@@ -1,7 +1,6 @@
 package ch.ethz.ivt.abmt.project;
 
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 
 import java.util.*;
@@ -35,8 +34,9 @@ public class RandomPopulationSample {
         // loop through the sample size
         for (int i = 0; i<this.samples; i++){
             // assigning randomly person ids to the list
-            // todo remove double entries
-            randomKeys.add(keys.get(random.nextInt(keys.size())));
+            int index = random.nextInt(keys.size());
+            randomKeys.add(keys.get(index));
+            keys.remove(index);
         }
         // returns a list with random person ids
         Set<Id> randomPersonsIds = new HashSet<Id>(randomKeys);
